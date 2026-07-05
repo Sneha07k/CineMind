@@ -17,19 +17,15 @@ import numpy as np
 print("\n📂 Loading MovieLens data...")
 try:
     ratings_df = pd.read_csv("data/ml-latest-small/ratings.csv")
-    movies_df = pd.read_csv("data/ml-latest-small/movies.csv")
-    links_df = pd.read_csv("data/ml-latest-small/links.csv")
+    movies_df  = pd.read_csv("data/ml-latest-small/movies.csv")
+    links_df   = pd.read_csv("data/ml-latest-small/links.csv")
 except FileNotFoundError:
     print("❌ Dataset not found!")
-    print(
-        "   Run: cd backend/data && wget https://files.grouplens.org/datasets/movielens/ml-latest-small.zip && unzip ml-latest-small.zip"
-    )
+    print("   Run: cd backend/data && wget https://files.grouplens.org/datasets/movielens/ml-latest-small.zip && unzip ml-latest-small.zip")
     sys.exit(1)
 
 print(f"   ✅ {len(movies_df):,} movies loaded")
-print(
-    f"   ✅ {len(ratings_df):,} ratings from {ratings_df['userId'].nunique():,} users"
-)
+print(f"   ✅ {len(ratings_df):,} ratings from {ratings_df['userId'].nunique():,} users")
 
 # ── 2. Build genre matrix ─────────────────────────────────
 
@@ -40,7 +36,6 @@ print(f"   ✅ {len(genre_dummies.columns)} genres: {list(genre_dummies.columns)
 
 # ── 3. Helper: movie title → movieId ─────────────────────
 
-
 def find_movie(title_keyword: str) -> dict:
     """Search for a movie by keyword, return first match."""
     mask = movies_df["title"].str.contains(title_keyword, case=False, na=False)
@@ -50,11 +45,9 @@ def find_movie(title_keyword: str) -> dict:
     row = results.iloc[0]
     return {"id": int(row["movieId"]), "title": row["title"]}
 
-
 def movie_title(movie_id: int) -> str:
     row = movies_df[movies_df["movieId"] == movie_id]
     return row["title"].values[0] if not row.empty else f"Movie {movie_id}"
-
 
 # ── 4. Content-based filtering ────────────────────────────
 
@@ -62,20 +55,18 @@ print("\n🎯 Testing content-based filtering...")
 
 from sklearn.metrics.pairwise import cosine_similarity
 
-genre_cols = [c for c in genre_df.columns if c not in ["movieId", "title"]]
-genre_matrix = genre_df[genre_cols].values
-movie_ids = genre_df["movieId"].tolist()
-sim_matrix = cosine_similarity(genre_matrix)
-
+genre_cols    = [c for c in genre_df.columns if c not in ["movieId", "title"]]
+genre_matrix  = genre_df[genre_cols].values
+movie_ids     = genre_df["movieId"].tolist()
+sim_matrix    = cosine_similarity(genre_matrix)
 
 def content_similar(movie_id: int, n: int = 5) -> list:
     if movie_id not in movie_ids:
         return []
-    idx = movie_ids.index(movie_id)
+    idx    = movie_ids.index(movie_id)
     scores = sim_matrix[idx]
-    top = np.argsort(scores)[::-1][1 : n + 1]
+    top    = np.argsort(scores)[::-1][1:n+1]
     return [(movie_ids[i], float(scores[i])) for i in top]
-
 
 def content_from_profile(rated: dict, n: int = 10) -> list:
     """rated = {movie_id: rating}"""
@@ -86,11 +77,10 @@ def content_from_profile(rated: dict, n: int = 10) -> list:
     norm = np.linalg.norm(profile)
     if norm > 0:
         profile /= norm
-    scores = genre_matrix @ profile
+    scores  = genre_matrix @ profile
     results = [(mid, float(s)) for mid, s in zip(movie_ids, scores) if mid not in rated]
     results.sort(key=lambda x: x[1], reverse=True)
     return results[:n]
-
 
 # Test: find movies similar to The Matrix
 matrix = find_movie("Matrix")
@@ -121,10 +111,9 @@ user_item = ratings_df.pivot_table(
 
 cf_movie_ids = user_item.columns.tolist()
 U, sigma, Vt = svds(sp_matrix(user_item.values, dtype=float), k=N_FACTORS)
-item_factors = Vt.T  # (n_movies, n_factors)
+item_factors  = Vt.T   # (n_movies, n_factors)
 
 print(f"   ✅ Matrix shape: {user_item.shape} | Latent factors: {N_FACTORS}")
-
 
 def collab_recommend(rated: dict, n: int = 10) -> list:
     user_vec = np.zeros(len(cf_movie_ids))
@@ -138,9 +127,7 @@ def collab_recommend(rated: dict, n: int = 10) -> list:
     top = np.argsort(scores)[::-1][:n]
     return [(cf_movie_ids[i], float(scores[i])) for i in top]
 
-
 # ── 6. Hybrid recommender ─────────────────────────────────
-
 
 def hybrid_recommend(rated: dict, n: int = 10, collab_w: float = 0.6) -> list:
     """Blend collaborative + content. Cold start if < 5 ratings."""
@@ -156,15 +143,12 @@ def hybrid_recommend(rated: dict, n: int = 10, collab_w: float = 0.6) -> list:
 
     blended = []
     for mid in set(content_scores) | set(collab_scores):
-        score = (
-            collab_scores.get(mid, 0) * collab_w
-            + content_scores.get(mid, 0) * content_w
-        )
+        score = (collab_scores.get(mid, 0) * collab_w +
+                 content_scores.get(mid, 0) * content_w)
         blended.append((mid, score, "hybrid"))
 
     blended.sort(key=lambda x: x[1], reverse=True)
     return blended[:n]
-
 
 # ── 7. End-to-end test ───────────────────────────────────
 
@@ -177,17 +161,15 @@ for keyword in ["Matrix", "Inception", "Interstellar", "Blade Runner", "Alien"]:
         sci_fi_picks[m["id"]] = 5.0
         print(f"   ⭐ Rated 5.0: {m['title']}")
 
-print(
-    f"\n   → Getting hybrid recommendations for {len(sci_fi_picks)} rated movies...\n"
-)
+print(f"\n   → Getting hybrid recommendations for {len(sci_fi_picks)} rated movies...\n")
 
 recs = hybrid_recommend(sci_fi_picks, n=10)
 
 print("   📽️  Top recommendations:")
 for i, (mid, score, method) in enumerate(recs, 1):
-    title = movie_title(mid)
-    row = genre_df[genre_df["movieId"] == mid]
-    genres = []
+    title   = movie_title(mid)
+    row     = genre_df[genre_df["movieId"] == mid]
+    genres  = []
     if not row.empty:
         genres = [g for g in genre_cols if row.iloc[0][g] == 1]
     genre_str = ", ".join(genres[:3]) if genres else "Unknown"

@@ -1,42 +1,66 @@
 # CineMind 🎬
 
-A hybrid movie recommendation system built with React + FastAPI.
-Uses collaborative filtering (SVD) + content-based filtering (cosine similarity on genres).
+A hybrid movie recommendation system — React + FastAPI.
+Combines collaborative filtering (SVD) and content-based filtering (cosine similarity on genres).
 
-## Setup
+## Quick Start
 
 ### 1. Download MovieLens dataset
 ```
+cd backend/data
 wget https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
-unzip ml-latest-small.zip -d backend/data/
+unzip ml-latest-small.zip
 ```
 
 ### 2. Get a free TMDB API key
 Sign up at https://www.themoviedb.org/settings/api
-Copy your key into `backend/.env`
+Then:
+```
+cp backend/.env.example backend/.env
+# paste your key into backend/.env
+```
 
-### 3. Backend
+### 3. Run the backend
 ```
 cd backend
-python -m venv venv && source venv/bin/activate
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env   # add your TMDB key
 uvicorn main:app --reload
 ```
 
-### 4. Frontend
+### 4. Run the frontend
 ```
 cd frontend
 npm install
 npm run dev
 ```
 
-App runs at http://localhost:5173
-API runs at http://localhost:8000
+App → http://localhost:5173
+API → http://localhost:8000
+API docs → http://localhost:8000/docs
 
-## Architecture
-- `backend/app/ml/`         — all ML logic (collaborative, content, hybrid)
-- `backend/app/services/`   — TMDB API integration
-- `frontend/src/store/`     — Zustand global state (user ratings)
-- `frontend/src/hooks/`     — data fetching hooks
-- `frontend/src/components/pages/` — Onboarding, Home, MovieDetail, TasteProfile
+## Project Structure
+```
+backend/
+  main.py                  # FastAPI entry, trains models on startup
+  app/
+    ml/
+      collaborative.py     # SVD-based collaborative filter
+      content_based.py     # Cosine similarity on genre vectors
+      hybrid.py            # Blends both, handles cold start
+      data_loader.py       # Loads MovieLens CSVs
+      state.py             # Global model state shared across requests
+    api/routes.py          # All API endpoints
+    models/schemas.py      # Pydantic request/response models
+    services/tmdb.py       # TMDB poster + metadata fetching
+    core/config.py         # Settings (TMDB key, dataset path)
+
+frontend/
+  src/
+    components/pages/      # Onboarding, Home, MovieDetail, TasteProfile
+    components/layout/     # Navbar
+    store/useStore.js      # Zustand global state (user ratings)
+    services/api.js        # All API calls
+    hooks/                 # useRecommendations hook
+    utils/genres.js        # Genre colour mapping
