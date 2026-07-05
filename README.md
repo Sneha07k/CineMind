@@ -7,11 +7,12 @@ Combines collaborative filtering (SVD) and content-based filtering (cosine simil
 
 <img width="1279" height="619" alt="image" src="https://github.com/user-attachments/assets/d7deb158-e7b3-44f9-a3de-49a24738b2ff" />
 
-
+<br>
 
 <img width="1279" height="619" alt="image" src="https://github.com/user-attachments/assets/70a700ff-423e-4c80-b028-1f979aa7edde" />
 
 
+<br>
 
 <img width="1279" height="628" alt="image" src="https://github.com/user-attachments/assets/d3d6dae1-4cd9-4b9f-9c53-cd4f8fe874cd" />
 
@@ -20,9 +21,12 @@ Combines collaborative filtering (SVD) and content-based filtering (cosine simil
 <img width="1279" height="625" alt="image" src="https://github.com/user-attachments/assets/5e0b80cc-7934-420d-af21-65c4e4394618" />
 
 
+<br>
+
 
 <img width="1279" height="625" alt="image" src="https://github.com/user-attachments/assets/eafcef2a-afb8-43e5-8af8-cd4263d416f8" />
 
+<br>
 
 ## Quick Start
 
